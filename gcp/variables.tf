@@ -53,3 +53,13 @@ variable "service_account_json_file_path" {
   description = "Path to service account JSON for gcloud"
   type = string
 }
+
+variable "openai_api_key" {
+  description = "API key for OpenAI"
+  type = string
+}
+
+variable "google_ai_endpoint" {
+  description = "Endpoint for Google AI"
+  type = string
+}
