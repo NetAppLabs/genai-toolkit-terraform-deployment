@@ -5,14 +5,29 @@ provider "google" {
   zone    = var.zone
 }
 
+resource "google_compute_firewall" "firewall" {
+  name    = "genai-toolkit-firewall"
+  network = var.network
+
+  allow {
+    protocol = "tcp"
+    ports    = ["80", "443"]
+  }
+
+  source_ranges = var.source_ranges
+  target_tags   = ["allow-from-my-ip"]
+}
+
+
 resource "google_compute_instance" "genai-toolkit-vm" {
   provider = google
   name = "genai-toolkit-vm"
   machine_type = "e2-standard-4"
+  tags = ["allow-from-my-ip"]
   network_interface {
     network = var.network
     subnetwork = var.subnetwork
-
+ 
     access_config {
 
     }
@@ -78,7 +93,6 @@ resource "google_compute_instance" "genai-toolkit-vm" {
   echo "Done!" >> /tmp/startup.log
   SCRIPT
 
-  tags = ["http-server", "https-server"]
 
   allow_stopping_for_update = true
 }
