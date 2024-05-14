@@ -24,6 +24,9 @@ resource "google_compute_instance" "genai-toolkit-vm" {
   name = "genai-toolkit-vm"
   machine_type = "e2-standard-4"
   tags = ["allow-from-my-ip"]
+  metadata = {
+    service-account-credentials = file(var.service_account_json_file_path)
+  }
   network_interface {
     network = var.network
     subnetwork = var.subnetwork
@@ -76,20 +79,21 @@ resource "google_compute_instance" "genai-toolkit-vm" {
   done
 
   echo "Finished mounting volumes" >> /tmp/startup.log
-  sudo docker pull us-central1-docker.pkg.dev/gcp-nv-1p-demos/genai2/genai-toolkit-ui &  >> /tmp/startup.log
-  sudo docker pull us-central1-docker.pkg.dev/gcp-nv-1p-demos/genai2/genai-toolkit-api &  >> /tmp/startup.log
-  sudo docker pull us-central1-docker.pkg.dev/gcp-nv-1p-demos/genai2/genai-toolkit-nginx &  >> /tmp/startup.log
-  sudo docker pull us-central1-docker.pkg.dev/gcp-nv-1p-demos/genai2/chromadb/chroma &  >> /tmp/startup.log
-  sudo docker pull us-central1-docker.pkg.dev/gcp-nv-1p-demos/genai2/postgres  >> /tmp/startup.log
+  sudo docker pull us-docker.pkg.dev/gcnv-ai-dev/genai-toolkit/genai-toolkit-ui:v0.2 &  >> /tmp/startup.log
+  sudo docker pull us-docker.pkg.dev/gcnv-ai-dev/genai-toolkit/genai-toolkit-api:v0.2 &  >> /tmp/startup.log
+  sudo docker pull us-docker.pkg.dev/gcnv-ai-dev/genai-toolkit/nginx:v0.2 &  >> /tmp/startup.log
+  sudo docker pull us-docker.pkg.dev/gcnv-ai-dev/genai-toolkit/chromadb:v0.2 &  >> /tmp/startup.log
+  sudo docker pull us-docker.pkg.dev/gcnv-ai-dev/genai-toolkit/postgres:v0.2  >> /tmp/startup.log
   wait
   docker network create my-network
   echo "Running Docker Images" >> /tmp/startup.log
   INSTANCE_IP=$(curl -H "Metadata-Flavor: Google" http://metadata.google.internal/computeMetadata/v1/instance/network-interfaces/0/access-configs/0/external-ip)
-  sudo docker run --name chromadb -p 8000:8000 --network=my-network -d us-central1-docker.pkg.dev/gcp-nv-1p-demos/genai2/chromadb/chroma
-  sudo docker run --name postgres -p 5432:5432 --network=my-network -d -e POSTGRES_USER=admin -e POSTGRES_PASSWORD=admin us-central1-docker.pkg.dev/gcp-nv-1p-demos/genai2/postgres
-  sudo docker run --name genai-toolkit-ui -p 3000:3000 --network=my-network -d -e GOOGLE_PROJECT_ID=${var.project} -e GOOGLE_API_KEY=${var.google_api_key} -e GOOGLE_REGION=${var.region} us-central1-docker.pkg.dev/gcp-nv-1p-demos/genai2/genai-toolkit-ui
-  sudo docker run --name genai-toolkit-api -p 8001:8001 -d --network=my-network -v /volumes/gcnv:/root_dir/gcnv -v /volumes/ontap:/root_dir/ontap -e ROOT_DIR=/root_dir -e GOOGLE_PROJECT_ID=${var.project} -e CHROMA_HOST=chromadb -e POSTGRES_HOST=postgres -e POSTGRES_CONNECTIONSTRING=postgresql+psycopg2://admin:admin@postgres:5432/postgres -e POSTGRES_DB=postgres -e GOOGLE_API_KEY=${var.google_api_key} -e GOOGLE_REGION=${var.region} -e OPENAI_API_KEY=${var.openai_api_key} -e GOOGLE_AI_ENDPOINT=${var.google_ai_endpoint} us-central1-docker.pkg.dev/gcp-nv-1p-demos/genai2/genai-toolkit-api
-  sudo docker run --name nginx -p 443:443 -p 80:80 --network=my-network us-central1-docker.pkg.dev/gcp-nv-1p-demos/genai2/genai-toolkit-nginx
+  sudo sh -c 'curl -H "Metadata-Flavor: Google" http://metadata.google.internal/computeMetadata/v1/instance/attributes/service-account-credentials > /root/credentials.json'
+  sudo docker run --name chromadb -p 8000:8000 --network=my-network -d us-docker.pkg.dev/gcnv-ai-dev/genai-toolkit/chromadb:v0.2
+  sudo docker run --name postgres -p 5432:5432 --network=my-network -d -e POSTGRES_USER=admin -e POSTGRES_PASSWORD=admin us-docker.pkg.dev/gcnv-ai-dev/genai-toolkit/postgres:v0.2
+  sudo docker run --name genai-toolkit-api -p 8001:8001 -d --network=my-network -v /volumes/gcnv:/root_dir/gcnv -v /volumes/ontap:/root_dir/ontap -v /root/credentials.json:/root/.config/gcloud/service_account.json -e ROOT_DIR=/root_dir -e GOOGLE_APPLICATION_CREDENTIALS=/root/.config/gcloud/service_account.json -e GOOGLE_PROJECT_ID=${var.project} -e CHROMA_HOST=chromadb -e POSTGRES_HOST=postgres -e POSTGRES_CONNECTIONSTRING=postgresql+psycopg2://admin:admin@postgres:5432/postgres -e POSTGRES_DB=postgres -e GOOGLE_API_KEY=${var.google_api_key} -e GOOGLE_REGION=${var.region} -e OPENAI_API_KEY=${var.openai_api_key} -e GOOGLE_AI_ENDPOINT=${var.google_ai_endpoint} us-docker.pkg.dev/gcnv-ai-dev/genai-toolkit/genai-toolkit-api:v0.2
+  sudo docker run --name genai-toolkit-ui -p 3000:3000 --network=my-network -d -e GOOGLE_PROJECT_ID=${var.project} -e GOOGLE_API_KEY=${var.google_api_key} -e GOOGLE_REGION=${var.region} us-docker.pkg.dev/gcnv-ai-dev/genai-toolkit/genai-toolkit-ui:v0.2
+  sudo docker run --name nginx -p 443:443 -p 80:80 --network=my-network us-docker.pkg.dev/gcnv-ai-dev/genai-toolkit/nginx:v0.2
   echo "Done!" >> /tmp/startup.log
   SCRIPT
 
@@ -97,14 +101,14 @@ resource "google_compute_instance" "genai-toolkit-vm" {
   allow_stopping_for_update = true
 }
 
-resource "time_sleep" "wait_2_minutes" {
+resource "time_sleep" "wait_for_toolkit_to_start" {
   depends_on = [google_compute_instance.genai-toolkit-vm]
 
-  create_duration = "3m"
+  create_duration = "4m"
 }
 
 output "app_url" {
   value = format("http://%s", google_compute_instance.genai-toolkit-vm.network_interface[0].access_config[0].nat_ip)
   description = "The URL for accessing the toolkit."
-  depends_on = [time_sleep.wait_2_minutes]
+  depends_on = [time_sleep.wait_for_toolkit_to_start]
 }
