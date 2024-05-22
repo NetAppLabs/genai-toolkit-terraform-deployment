@@ -12,13 +12,11 @@ subnetwork = ""
 firewall_tags = [""]
 // The service account json file
 service_account_json_file_path = ""
-// The GCP API key used to authenticate with GCP
-google_api_key = ""
-// The endpoint URL to use against Gemini
-google_ai_endpoint = ""
 
 // The OpenAI API Key used to authenticate with OpenAI
 openai_api_key = ""
+// The OpenAI endpoint URL
+openai_endpoint = ""
 
 // Source IP ranges that are allowed to access the VM
 source_ranges = [""]
