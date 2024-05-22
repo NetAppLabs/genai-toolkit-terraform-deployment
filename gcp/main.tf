@@ -94,11 +94,10 @@ resource "google_compute_instance" "genai-toolkit-vm" {
   sudo docker run --name chromadb --network=genai-toolkit-network -v /databases/chromadb:/chroma/chroma -d us-docker.pkg.dev/gcnv-ai-dev/genai-toolkit/chromadb:v0.2
   sudo docker run --name postgres --network=genai-toolkit-network -v /databases/postgres:/var/lib/postgresql/data -d -e POSTGRES_USER=admin -e POSTGRES_PASSWORD=admin us-docker.pkg.dev/gcnv-ai-dev/genai-toolkit/postgres:v0.2
   sudo docker run --name genai-toolkit-api -d --network=genai-toolkit-network -v /volumes/gcnv:/root_dir/gcnv -v /volumes/ontap:/root_dir/ontap -v /root/credentials.json:/root/.config/gcloud/service_account.json -e ROOT_DIR=/root_dir -e GOOGLE_APPLICATION_CREDENTIALS=/root/.config/gcloud/service_account.json -e GOOGLE_PROJECT_ID=${var.project} -e CHROMA_HOST=chromadb -e POSTGRES_HOST=postgres -e POSTGRES_CONNECTIONSTRING=postgresql+psycopg2://admin:admin@postgres:5432/postgres -e POSTGRES_DB=postgres -e GOOGLE_API_KEY=${var.google_api_key} -e GOOGLE_REGION=${var.region} -e OPENAI_API_KEY=${var.openai_api_key} -e GOOGLE_AI_ENDPOINT=${var.google_ai_endpoint} us-docker.pkg.dev/gcnv-ai-dev/genai-toolkit/genai-toolkit-api:v0.2
-  sudo docker run --name genai-toolkit-ui --network=genai-toolkit-network -d -e GOOGLE_PROJECT_ID=${var.project} -e GOOGLE_API_KEY=${var.google_api_key} -e GOOGLE_REGION=${var.region} us-docker.pkg.dev/gcnv-ai-dev/genai-toolkit/genai-toolkit-ui:v0.2
+  sudo docker run --name genai-toolkit-ui --network=genai-toolkit-network -d us-docker.pkg.dev/gcnv-ai-dev/genai-toolkit/genai-toolkit-ui:v0.2
   sudo docker run --name nginx -p 443:443 -p 80:80 -p 8001:8001 --network=genai-toolkit-network us-docker.pkg.dev/gcnv-ai-dev/genai-toolkit/nginx:v0.2
   echo "Done!" >> /tmp/startup.log
   SCRIPT
-
 
   allow_stopping_for_update = true
 }
