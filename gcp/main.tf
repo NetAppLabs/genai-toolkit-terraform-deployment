@@ -5,8 +5,7 @@ provider "google" {
   zone    = var.zone
 }
 
-resource "google_compute_firewall" "firewall" {
-  name    = "genai-toolkit-firewall"
+resource "google_compute_firewall" "firewall" { name    = "genai-toolkit-firewall"
   network = var.network
 
   allow {
@@ -27,11 +26,12 @@ resource "google_compute_instance" "genai-toolkit-vm" {
   metadata = {
     service-account-credentials = file(var.service_account_json_file_path)
   }
+
   network_interface {
     network = var.network
     subnetwork = var.subnetwork
- 
-    access_config {
+    
+    access_config{
 
     }
   }
@@ -43,61 +43,16 @@ resource "google_compute_instance" "genai-toolkit-vm" {
     }
   }
 
-  metadata_startup_script = <<SCRIPT
-  #!/bin/bash
-  set -x
-  sudo apt-get update > /tmp/startup.log 2>&1
-  sudo apt-get install -y ca-certificates curl >> /tmp/startup.log 2>&1
-  sudo install -m 0755 -d /etc/apt/keyrings >> /tmp/startup.log 2>&1
-  sudo curl -fsSL https://download.docker.com/linux/debian/gpg -o /etc/apt/keyrings/docker.asc >> /tmp/startup.log 2>&1
-  sudo chmod a+r /etc/apt/keyrings/docker.asc >> /tmp/startup.log 2>&1
-  echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/debian $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null >> /tmp/startup.log 2>&1
-  sudo apt-get update >> /tmp/startup.log 2>&1
-  sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin >> /tmp/startup.log 2>&1
-  sudo apt-get install -y nfs-common >> /tmp/startup.log 2>&1
-  sudo mkdir -p /volumes/ >> /tmp/startup.log 2>&1
-  sudo mkdir -p /databases/chromadb
-  sudo mkdir -p /databases/postgres
-  echo "Running mount command" >> /tmp/startup.log
-
-  # Convert the list of NFS servers to a space-separated string
-  gcnv_volumes="${join(" ", var.gcnv_volumes)}"
-  ontap_volumes="${join(" ", var.ontap_volumes)}"
-
-  #GCNV volume mount
-  for nfs_server in $gcnv_volumes; do
-    volumename=$${nfs_server##*/}
-    sudo mkdir -p /volumes/gcnv/$volumename
-    echo "Mounting $nfs_server at /volumes/gcnv/$volumename"
-    sudo mount -t nfs -o rw,hard,rsize=65536,wsize=65536,vers=3,tcp $nfs_server /volumes/gcnv/$volumename >> /tmp/startup.log 2>&1
-  done
-
-  #ONTAP volume mount
-  for nfs_server in $ontap_volumes; do
-    volumename=$${nfs_server##*/}
-    sudo mkdir -p /volumes/ontap/$volumename
-    echo "Mounting $nfs_server at /volumes/ontap/$volumename"
-    sudo mount -t nfs -o rw,hard,rsize=65536,wsize=65536,vers=3,tcp $nfs_server /volumes/ontap/$volumename >> /tmp/startup.log 2>&1
-  done
-
-  echo "Finished mounting volumes" >> /tmp/startup.log
-  sudo docker pull us-docker.pkg.dev/gcnv-ai-dev/genai-toolkit/genai-toolkit-ui:v0.2 &  >> /tmp/startup.log
-  sudo docker pull us-docker.pkg.dev/gcnv-ai-dev/genai-toolkit/genai-toolkit-api:v0.2 &  >> /tmp/startup.log
-  sudo docker pull us-docker.pkg.dev/gcnv-ai-dev/genai-toolkit/nginx:v0.2 &  >> /tmp/startup.log
-  sudo docker pull us-docker.pkg.dev/gcnv-ai-dev/genai-toolkit/chromadb:v0.2 &  >> /tmp/startup.log
-  sudo docker pull us-docker.pkg.dev/gcnv-ai-dev/genai-toolkit/postgres:v0.2  >> /tmp/startup.log
-  wait
-  docker network create genai-toolkit-network
-  echo "Running Docker Images" >> /tmp/startup.log
-  INSTANCE_IP=$(curl -H "Metadata-Flavor: Google" http://metadata.google.internal/computeMetadata/v1/instance/network-interfaces/0/access-configs/0/external-ip)
-  sudo sh -c 'curl -H "Metadata-Flavor: Google" http://metadata.google.internal/computeMetadata/v1/instance/attributes/service-account-credentials > /root/credentials.json'
-  sudo docker run --name chromadb --network=genai-toolkit-network -v /databases/chromadb:/chroma/chroma -d us-docker.pkg.dev/gcnv-ai-dev/genai-toolkit/chromadb:v0.2
-  sudo docker run --name postgres --network=genai-toolkit-network -v /databases/postgres:/var/lib/postgresql/data -d -e POSTGRES_USER=admin -e POSTGRES_PASSWORD=admin -e POSTGRES_DB=genai-toolkit-db us-docker.pkg.dev/gcnv-ai-dev/genai-toolkit/postgres:v0.2
-  sudo docker run --name genai-toolkit-api -d --network=genai-toolkit-network -v /volumes/gcnv:/root_dir/gcnv -v /volumes/ontap:/root_dir/ontap -v /root/credentials.json:/root/.config/gcloud/service_account.json -e ROOT_DIR=/root_dir -e GOOGLE_APPLICATION_CREDENTIALS=/root/.config/gcloud/service_account.json -e CHROMA_HOST=chromadb -e POSTGRES_HOST=postgres -e OPENAI_API_KEY=${var.openai_api_key} -e OPENAI_ENDPOINT=${var.openai_endpoint} us-docker.pkg.dev/gcnv-ai-dev/genai-toolkit/genai-toolkit-api:v0.2
-  sudo docker run --name genai-toolkit-ui --network=genai-toolkit-network -d us-docker.pkg.dev/gcnv-ai-dev/genai-toolkit/genai-toolkit-ui:v0.2
-  sudo docker run --name nginx -p 443:443 -p 80:80 -p 8001:8001 --network=genai-toolkit-network us-docker.pkg.dev/gcnv-ai-dev/genai-toolkit/nginx:v0.2
-  echo "Done!" >> /tmp/startup.log
-  SCRIPT
+  metadata_startup_script = <<EOF
+    echo '${file("docker-compose.yml")}' > /root/docker-compose.yml
+    echo '${base64encode(file("bootstrap_script.sh"))}' | base64 -d > /root/bootstrap_script.sh
+    chmod +x /root/bootstrap_script.sh
+    export GCNV_VOLUMES="${join(",", var.gcnv_volumes)}"
+    export ONTAP_VOLUMES="${join(",", var.ontap_volumes)}"
+    export OPENAI_API_KEY=${var.openai_api_key}
+    export OPENAI_ENDPOINT=${var.openai_endpoint}
+    /root/bootstrap_script.sh
+  EOF
 
   allow_stopping_for_update = true
 }
