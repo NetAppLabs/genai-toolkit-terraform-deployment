@@ -39,11 +39,6 @@ variable "ontap_volumes" {
   type        = list(string)
 }
 
-variable "google_api_key" {
-  description = "The api key for gcp"
-  type        = string
-}
-
 variable "source_ranges" {
   description = "A list of source ranges"
   type        = list(string)
@@ -59,7 +54,7 @@ variable "openai_api_key" {
   type = string
 }
 
-variable "google_ai_endpoint" {
-  description = "Endpoint for Google AI"
+variable "openai_endpoint" {
+  description = "Endpoint for OpenAI"
   type = string
 }
