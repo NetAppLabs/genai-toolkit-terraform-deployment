@@ -19,7 +19,7 @@ IFS=',' read -ra nfs_servers <<< "$GCNV_VOLUMES"
 for nfs_server in "${nfs_servers[@]}"; do
   volumename=${nfs_server##*/}
   mkdir -p /volumes/gcnv/$volumename
-  mount -t nfs -o rw,hard,rsize=65536,wsize=65536,vers=3,tcp $nfs_server /volumes/gcnv/$volumename >> /tmp/startup.log 2>&1
+  mount -t nfs -o rw,hard,rsize=65536,wsize=65536,vers=3,tcp $nfs_server /volumes/gcnv/$volumename
 done
 
 #ONTAP volume mount
@@ -27,7 +27,7 @@ IFS=',' read -ra nfs_servers <<< "$ONTAP_VOLUMES"
 for nfs_server in "${nfs_servers[@]}"; do
   volumename=${nfs_server##*/}
   mkdir -p /volumes/ontap/$volumename
-  mount -t nfs -o rw,hard,rsize=65536,wsize=65536,vers=3,tcp $nfs_server /volumes/ontap/$volumename >> /tmp/startup.log 2>&1
+  mount -t nfs -o rw,hard,rsize=65536,wsize=65536,vers=3,tcp $nfs_server /volumes/ontap/$volumename
 done
 
 cd /root/
