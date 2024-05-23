@@ -30,7 +30,5 @@ for nfs_server in "${nfs_servers[@]}"; do
   mount -t nfs -o rw,hard,rsize=65536,wsize=65536,vers=3,tcp $nfs_server /volumes/ontap/$volumename >> /tmp/startup.log 2>&1
 done
 
-sh -c 'curl -H "Metadata-Flavor: Google" http://metadata.google.internal/computeMetadata/v1/instance/attributes/service-account-credentials > /root/credentials.json'
-
 cd /root/
 docker compose up --detach --build --remove-orphans

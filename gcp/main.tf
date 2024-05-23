@@ -11,22 +11,18 @@ resource "google_compute_firewall" "firewall" {
 
   allow {
     protocol = "tcp"
-    ports    = ["80", "443"]
+    ports    = ["80", "443", "8001"]
   }
 
   source_ranges = var.source_ranges
   target_tags   = ["allow-from-my-ip"]
 }
 
-
 resource "google_compute_instance" "genai-toolkit-vm" {
   provider = google
   name = "genai-toolkit-vm"
   machine_type = "e2-standard-4"
   tags = ["allow-from-my-ip"]
-  metadata = {
-    service-account-credentials = file(var.service_account_json_file_path)
-  }
 
   network_interface {
     network = var.network
@@ -45,7 +41,8 @@ resource "google_compute_instance" "genai-toolkit-vm" {
   }
 
   metadata_startup_script = <<EOF
-    echo '${file("docker-compose.yml")}' > /root/docker-compose.yml
+    echo '${base64encode(file("docker-compose.yml"))}' | base64 -d > /root/docker-compose.yml
+    echo '${base64encode(file(var.service_account_json_file_path))}' | base64 -d > /root/credentials.json
     echo '${base64encode(file("bootstrap_script.sh"))}' | base64 -d > /root/bootstrap_script.sh
     chmod +x /root/bootstrap_script.sh
     export GCNV_VOLUMES="${join(",", var.gcnv_volumes)}"
