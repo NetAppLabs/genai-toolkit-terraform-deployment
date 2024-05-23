@@ -5,7 +5,8 @@ provider "google" {
   zone    = var.zone
 }
 
-resource "google_compute_firewall" "firewall" { name    = "genai-toolkit-firewall"
+resource "google_compute_firewall" "firewall" { 
+  name    = "genai-toolkit-firewall"
   network = var.network
 
   allow {
