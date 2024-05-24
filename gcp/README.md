@@ -1,72 +1,71 @@
-# Terraform Deployment for NetApps GenAI toolkit
+# GenAI Toolkit Terraform Deployment
 
-This terraform deployment deploys the NetApp GenAI toolkit for GCP.
+This project uses Terraform to deploy NetApp's GenAI Toolkit to Google Cloud Platform (GCP). 
 
 ## Prerequisites
 
-1. [Terraform](https://www.terraform.io/downloads.html) installed on your machine.
-2. A GCP account with necessary permissions to create resources.
-2. Google Cloud Project
-3. Service Account
-4. Appropriate rules – IAM 
-5. VPC Network
-6. Firewall Rules to allow incoming traffic.
-7. A GCP Service Account Key
-
+- Terraform installed
+- Google Cloud SDK (gcloud) installed and authenticated
 
 ## Variables
 
-You need to provide values for the following variables either through the `terraform.tfvars` file or via command line:
+The following variables are used in this Terraform deployment:
 
-- `project`: The ID of the project in which resources will be deployed.
-- `region`: The region in which resources will be deployed.
-- `zone`: The zone within the region for the deployment.
-- `network`: The network to which the VM will be connected.
-- `subnetwork`: The subnetwork within the network for the VM.
-- `tags`: The tags to to the VM and firewall rules.
-- `gcnv_volumes`: A list of GCNV NFS volumes (see variables files for more info)
-- `ontap_volumes`: A list of ONTAP NFS volumes (see variables files for more info)
+- `project`: The GCP project to use.
+- `region`: The region where the resources will be created.
+- `zone`: The zone where the resources will be created.
+- `network`: The network to use for the instance.
+- `subnetwork`: The subnetwork to use for the instance.
+- `firewall_tags`: List of tags to apply to the firewall rules.
+- `source_ranges`: A list of source ranges.
+- `service_account_json_file_path`: Path to service account JSON for gcloud.
+- `openai_api_key`: API key for OpenAI.
+- `openai_endpoint`: Endpoint for OpenAI.
+- `gcnv_volumes`: List of GCNV NFS volumes to mount.
+- `ontap_volumes`: List of ONTAP NFS volumes to mount.
 
-## Usage
+## Deployment Steps
 
-1. A GCP Service Account key has to be set for authentication when deploying the terraform script from your local linux machine. The downloaded key can be set as an evironmental variable in the following manner.
+1. Clone this repository and navigate to the Terraform directory.
 
-```bash
-export GOOGLE_APPLICATION_CREDENTIALS="/path/to/keyfile.json"
+   ```bash
+   git clone <repository_url>
+   cd <terraform_directory>
+   ```
+2. Initialize Terraform
 
-```
+   ```bash
+   terraform init
+   ```
 
-2. Initialize Terraform in the directory containing the Terraform files:
+3. Edit the `terraform.tfvars` file and specify the values for the variables. Here is an example:
 
-```bash
-terraform init
-```
+   ```bash
+   project = "<project_id>"
+   region = "<region>"
+   zone = "<zone>"
+   network = "<network>"
+   subnetwork = "<subnetwork>"
+   firewall_tags = ["http-server", "https-server"]
+   source_ranges = ["<source_range1>", "<source_range2>"]
+   service_account_json_file_path = "<service_account_json_file_path>"
+   openai_api_key = "<openai_api_key>"
+   openai_endpoint = "<openai_endpoint>"
+   gcnv_volumes = ["<1.2.3.4:/gcnv/volume1>", "<1.2.3.4:/gcnv/volume2>"]
+   ontap_volumes = ["<1.2.3.4:/ontap/volume1>", "<1.2.3.4:/ontap/volume2>"]
+   ```
+   Replace the placeholders with your actual values.
 
-3. Plan the deployment and review the resources that will be created:
 
-```bash
-terraform plan
-```
+4. Plan the Terraform deployment to see what resources will be created.
 
-4. Apply the Terraform configuration to create the resources:
+   ```bash
+   terraform plan
+   ```
 
-```bash
-terraform apply
-```
+5. Apply the Terraform deployment to create the resources.
 
-## Firewall Rules
-
-This script creates two firewall rules:
-
-- `http_firewall`: Allows incoming HTTP traffic on port 80.
-- `https_firewall`: Allows incoming HTTPS traffic on port 443.
-
-## VM Configuration
-
-The script deploys a VM named `genai-toolkit-vm` with the following configuration:
-
-- Machine type: `e2-standard-4`
-- Network: As per the `network` variable
-- Subnetwork: As per the `subnetwork` variable
-- Boot disk: Debian 12 with a size of 100 GB
-- Startup script: Installs and sets up the toolkit
+   ```bash
+   terraform apply
+   ```
+   Confirm the deployment by typing `yes` when prompted

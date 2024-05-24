@@ -1,0 +1,66 @@
+name: genai-toolkit
+services:
+    chromadb:
+        image: us-docker.pkg.dev/gcnv-ai-dev/genai-toolkit/chromadb:v0.2
+        container_name: chromadb
+        volumes:
+            - /databases/chromadb:/chroma/chroma
+        healthcheck:
+            test: [ "CMD", "curl", "-f", "http://localhost:8000/api/v1/heartbeat" ]
+            interval: 30s
+            timeout: 10s
+            retries: 3
+
+    postgres:
+        image: us-docker.pkg.dev/gcnv-ai-dev/genai-toolkit/postgres:v0.2
+        container_name: postgres
+        environment:
+            POSTGRES_DB: genai-toolkit-db
+            POSTGRES_USER: admin
+            POSTGRES_PASSWORD: admin
+        volumes:
+            - /databases/postgres:/var/lib/postgresql/data
+
+    genai-toolkit-api:
+        stop_signal: SIGINT
+        image: us-docker.pkg.dev/gcnv-ai-dev/genai-toolkit/genai-toolkit-api:v0.2
+        container_name: genai-toolkit-api
+        healthcheck:
+            test: ["CMD", "curl", "-f", "http://localhost:8001/health/"]
+            interval: 10s
+            timeout: 10s
+            retries: 10
+        environment:
+            ROOT_DIR: /root_dir
+            CHROMA_HOST: chromadb
+            POSTGRES_HOST: postgres
+            POSTGRES_DB: genai-toolkit-db
+            GOOGLE_APPLICATION_CREDENTIALS: /root/.config/gcloud/service_account.json
+            OPENAI_API_KEY: ${OPENAI_API_KEY}
+            OPENAI_ENDPOINT: ${OPENAI_ENDPOINT}
+        volumes:
+            - /root/credentials.json:/root/.config/gcloud/service_account.json
+            - /volumes/anf:/root_dir/anf
+            - /volumes/ontap:/root_dir/ontap
+            - /cache/api:/app/.cache
+        depends_on:
+            - chromadb
+            - postgres
+
+    genai-toolkit-ui:
+        image: us-docker.pkg.dev/gcnv-ai-dev/genai-toolkit/genai-toolkit-ui:v0.2
+        container_name: genai-toolkit-ui
+        depends_on:
+            genai-toolkit-api:
+                condition: service_healthy
+
+    nginx:
+        image: us-docker.pkg.dev/gcnv-ai-dev/genai-toolkit/nginx:v0.2
+        container_name: nginx
+        ports:
+            - "80:80"
+            - "443:443"
+            - "8001:8001"
+        depends_on:
+            - genai-toolkit-api
+            - genai-toolkit-ui
