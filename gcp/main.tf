@@ -1,3 +1,8 @@
+resource "random_password" "jwt_security_token" {
+  length           = 128
+  special          = false
+}
+
 provider "google" {
   credentials = file(var.service_account_json_file_path)
   project = var.project
@@ -47,8 +52,9 @@ resource "google_compute_instance" "genai-toolkit-vm" {
     chmod +x /root/bootstrap_script.sh
     export GCNV_VOLUMES="${join(",", var.gcnv_volumes)}"
     export ONTAP_VOLUMES="${join(",", var.ontap_volumes)}"
-    export OPENAI_API_KEY=${var.openai_api_key}
-    export OPENAI_ENDPOINT=${var.openai_endpoint}
+    sed -i "s/JWT_SECRET_KEY_PLACEHOLDER/${random_password.jwt_security_token.result}/g" /root/docker-compose.yml
+    sed -i "s/OPENAI_API_KEY_PLACEHOLDER/${var.openai_api_key}/g" /root/docker-compose.yml
+    sed -i "s/OPENAI_ENDPOINT_PLACEHOLDER/${var.openai_endpoint}/g" /root/docker-compose.yml
     /root/bootstrap_script.sh
   EOF
 

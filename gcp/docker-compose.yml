@@ -35,8 +35,9 @@ services:
             CHROMA_HOST: chromadb
             POSTGRES_HOST: postgres
             POSTGRES_DB: genai-toolkit-db
-            OPENAI_API_KEY: OPENAI_API_KEY
-            OPENAI_ENDPOINT: OPENAI_ENDPOINT
+            OPENAI_API_KEY: OPENAI_API_KEY_PLACEHOLDER
+            OPENAI_ENDPOINT: OPENAI_ENDPOINT_PLACEHOLDER
+            JWT_SECRET_KEY: JWT_SECRET_KEY_PLACEHOLDER
             GOOGLE_APPLICATION_CREDENTIALS: /root/.config/gcloud/service_account.json
         volumes:
             - /root/credentials.json:/root/.config/gcloud/service_account.json
