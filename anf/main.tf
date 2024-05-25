@@ -1,3 +1,8 @@
+resource "random_password" "jwt_security_token" {
+  length           = 128
+  special          = false
+}
+
 # Declare Provider Azure
 provider "azurerm" {
   features {}
@@ -85,8 +90,9 @@ resource "azurerm_linux_virtual_machine" "genai-toolkit_vm" {
         permissions: '0755'
         content: |
           #!/bin/bash
-          export OPENAI_API_KEY="${var.openai_api_key}"
-          export OPENAI_ENDPOINT="${var.openai_endpoint}"
+          sed -i "s/JWT_SECRET_KEY_PLACEHOLDER/${random_password.jwt_security_token.result}/g" /root/docker-compose.yml
+          sed -i "s/OPENAI_API_KEY_PLACEHOLDER/${var.openai_api_key}/g" /root/docker-compose.yml
+          sed -i "s/OPENAI_ENDPOINT_PLACEHOLDER/${var.openai_endpoint}/g" /root/docker-compose.yml
           export ANF_VOLUMES="${join(",", var.anf_volumes)}"
           export ONTAP_VOLUMES="${join(",", var.ontap_volumes)}"
       - path: /root/bootstrap_script.sh
