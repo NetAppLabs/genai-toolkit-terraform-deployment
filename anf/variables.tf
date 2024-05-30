@@ -53,6 +53,26 @@ variable "google_service_account_file_path" {
   type        = string
 }
 
+variable "google_project" {
+  description = "Project to use with Gemini"
+  type = string
+}
+
+variable "google_region" {
+  description = "Region to use with Gemini"
+  type = string
+}
+
+variable "google_api_key" {
+  description = "API key for Google"
+  type = string
+}
+
+variable "google_ai_endpoint" {
+  description = "Endpoint for Gemini"
+  type = string
+}
+
 variable "source_ip_range" {
   description = "Source IP CIDR that the toolkit will be accessible from (your source IP for instance)"
   type        = string

@@ -58,3 +58,13 @@ variable "openai_endpoint" {
   description = "Endpoint for OpenAI"
   type = string
 }
+
+variable "google_api_key" {
+  description = "API key for Google"
+  type = string
+}
+
+variable "google_ai_endpoint" {
+  description = "Endpoint for Google AI"
+  type = string
+}
