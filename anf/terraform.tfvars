@@ -10,6 +10,10 @@ source_ip_range = "*"
 openai_api_key = ""
 openai_endpoint = ""
 google_service_account_file_path = ""
+google_project = ""
+google_region = ""
+google_api_key = ""
+google_ai_endpoint = ""
 
 anf_volumes = []
 ontap_volumes = []

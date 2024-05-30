@@ -25,6 +25,7 @@ services:
         stop_signal: SIGINT
         image: us-docker.pkg.dev/gcnv-ai-dev/genai-toolkit/genai-toolkit-api:v0.2
         container_name: genai-toolkit-api
+        privileged: true
         healthcheck:
             test: ["CMD", "curl", "-f", "http://localhost:8001/health/"]
             interval: 10s
@@ -35,9 +36,16 @@ services:
             CHROMA_HOST: chromadb
             POSTGRES_HOST: postgres
             POSTGRES_DB: genai-toolkit-db
+            LOG_HTTP_REQUESTS: FALSE
+            JWT_ACCESS_TOKEN_EXPIRES: 5
+            JWT_AUTH_REQUIRED: TRUE
+            JWT_SECRET_KEY: JWT_SECRET_KEY_PLACEHOLDER
+            GOOGLE_REGION: GOOGLE_REGION_PLACEHOLDER
+            GOOGLE_PROJECT_ID: GOOGLE_PROJECT_ID_PLACEHOLDER
+            GOOGLE_API_KEY: GOOGLE_API_KEY_PLACEHOLDER
+            GOOGLE_AI_ENDPOINT: GOOGLE_AI_ENDPOINT_PLACEHOLDER
             OPENAI_API_KEY: OPENAI_API_KEY_PLACEHOLDER
             OPENAI_ENDPOINT: OPENAI_ENDPOINT_PLACEHOLDER
-            JWT_SECRET_KEY: JWT_SECRET_KEY_PLACEHOLDER
             GOOGLE_APPLICATION_CREDENTIALS: /root/.config/gcloud/service_account.json
         volumes:
             - /root/credentials.json:/root/.config/gcloud/service_account.json
