@@ -79,7 +79,9 @@ The following variables are used in this Terraform deployment:
    ```
    Confirm the deployment by typing `yes` when prompted
 
-## Starting Tasks after Terraform Deployment on Google Cloud
+   When the deployment is complete, Terraform will output the `app_url`, which will allow you to access the GenAI Toolkit through a browser.
+
+## Getting started with GenAI toolkit
 
 1. Open GenAI Toolkit by navigating your browser to the IP address that the Terraform deployment reported back to you.
 2. Register a user account and login (In Preview this is only an email/password pair).
