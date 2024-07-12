@@ -9,7 +9,7 @@ To get the GenAI toolkit up and running, please follow the instructions specific
 
 Once the GenAI toolkit is up and running, you will need to add your API key to your user account after creating it. Therefore, a prerequisite for using the service is having access to the API key for the AI model you intend to use. If you intend to use an Azure OpenAI key, please note that you need to apply for access, which may take up to 24 hours to be granted.
 
-If you encounter any issues with getting the GenAI toolkit up and running or configuring the AI models, please send an email to hinrik@netapp.com.
+If you encounter any issues with getting the GenAI toolkit up and running or configuring the AI models, please visit our [Discussions page](https://github.com/NetAppLabs/genai-toolkit-terraform-deployment/discussions) or send an email to hinrik@netapp.com.
 
 # What is NetApp's GenAI Toolkit?
 
