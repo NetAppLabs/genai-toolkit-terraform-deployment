@@ -19,9 +19,6 @@ The following variables are used in this Terraform deployment:
 - `admin_username`: The admin username used to log into the VM.
 - `admin_password`: The admin password used to log into the VM.
 - `admin_ssh_key_file_location`: Path to the public key to use for VM access.
-- `openai_api_key`: API key used to talk to OpenAI.
-- `openai_endpoint`: The endpoint used to talk to OpenAI.
-- `google_service_account_file_path`: Path to Google service account JSON that has access to VertexAI.
 - `source_ip_range`: Source IP CIDR that the toolkit will be accessible from (your source IP for instance).
 - `anf_volumes`: List of ANF volumes to mount.
 - `ontap_volumes`: List of ONTAP volumes to mount.
@@ -51,9 +48,6 @@ The following variables are used in this Terraform deployment:
    admin_username = "<admin_username>"
    admin_password = "<admin_password>"
    admin_ssh_key_file_location = "<ssh_key_file_path>"
-   openai_api_key = "<openai_api_key>"
-   openai_endpoint = "<openai_endpoint>"
-   google_service_account_file_path = "<google_service_account_file_path>"
    source_ip_range = "<source_ip_range>"
    anf_volumes = ["<1.2.3.4:/anf/volume1>", "<1.2.3.4:/anf/volume2>"]
    ontap_volumes = ["<1.2.3.4:/ontap/volume1>", "<1.2.3.4:/ontap/volume2>"]

@@ -83,3 +83,4 @@ services:
         depends_on:
             - genai-toolkit-api
             - genai-toolkit-ui
+            
