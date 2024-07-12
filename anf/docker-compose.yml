@@ -1,9 +1,9 @@
-name: genai-toolkit
+version: '3.8'
+
 services:
     postgres:
         image: pgvector/pgvector:pg16
         container_name: postgres
-        attach: false
         environment:
             POSTGRES_DB: genai-toolkit-db
             POSTGRES_USER: admin
@@ -18,13 +18,13 @@ services:
         volumes:
             - ./postgres:/var/lib/postgresql/data
         command: ["postgres", "-c", "idle_session_timeout=360000", "-c", "log_statement=all", "-c", "log_line_prefix=%m | %a | '%i' | SessionCommandCount: %c | "]
-        # "-c", "log_duration=on", "-c", "log_connections=on", "-c", "log_disconnections=on", 
+        # "-c", "log_duration=on", "-c", "log_connections=on", "-c", "log_disconnections=on",
 
     genai-toolkit-api:
         stop_signal: SIGINT
         image: us-docker.pkg.dev/gcnv-ai-dev/genai-toolkit/genai-toolkit-api:v0.3
         container_name: genai-toolkit-api
-        privileged: true
+        privileged: True
         healthcheck:
             test: ["CMD", "curl", "-f", "http://localhost:8001/health/"]
             interval: 10s
@@ -33,16 +33,15 @@ services:
         environment:
             ROOT_DIR: /root_dir
             RAGAS_HOST: http://genai-toolkit-ragas:8002
-            POSTGRES_HOST: postgres
-            POSTGRES_DB: genai-toolkit-db
-            LOG_HTTP_REQUESTS: FALSE
+            ConnectionStrings__DefaultConnection: Host=postgres;Port=5432;Database=genai-toolkit-db;Username=admin;Password=admin
+            LOG_HTTP_REQUESTS: "false"
             JWT_ACCESS_TOKEN_EXPIRES: 5
-            JWT_AUTH_REQUIRED: TRUE
-            JWT_SECRET_KEY: JWT_SECRET_KEY_PLACEHOLDER
+            JWT_AUTH_REQUIRED: "true"
+            JWT_SECRET_KEY: 2kITFGsso9V1C4HjmwioxYkWX7ACWYibUepI1NDy9xXpxOLqzkxOVNPjAlPUAxPJQgXyCFs4fMYXGCb2JFcPclYh1bkVsDlX3P7E9EuofBmPq1Z5CctWwBjBe8jWwBme
         volumes:
-            - /volumes/anf:/root_dir/anf
-            - /volumes/ontap:/root_dir/ontap
             - /cache/api:/app/.cache
+        ports:
+            - "8080:8080"
         depends_on:
             - postgres
 
@@ -53,14 +52,14 @@ services:
             dockerfile: ragas.Dockerfile
         image: us-docker.pkg.dev/gcnv-ai-dev/genai-toolkit/genai-toolkit-ragas:v0.3
         container_name: genai-toolkit-ragas
-        env_file:
-            - ./api/.env
         environment:
             ROOT_DIR: /root_dir
             POSTGRES_HOST: postgres
-            JWT_AUTH_REQUIRED: FALSE
-            RAGAS_DO_NOT_TRACK: True
+            JWT_AUTH_REQUIRED: "false"
+            RAGAS_DO_NOT_TRACK: "false"
         volumes:
+            - /volumes/anf:/root_dir/anf
+            - /volumes/ontap:/root_dir/ontap
             - ./api/fake-volumes:/root_dir
             - ./api/.cache:/app/.cache
         depends_on:
