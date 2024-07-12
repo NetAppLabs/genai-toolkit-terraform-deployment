@@ -1,29 +1,28 @@
 name: genai-toolkit
 services:
-    chromadb:
-        image: us-docker.pkg.dev/gcnv-ai-dev/genai-toolkit/chromadb:v0.2
-        container_name: chromadb
-        volumes:
-            - /databases/chromadb:/chroma/chroma
-        healthcheck:
-            test: [ "CMD", "curl", "-f", "http://localhost:8000/api/v1/heartbeat" ]
-            interval: 30s
-            timeout: 10s
-            retries: 3
-
     postgres:
-        image: us-docker.pkg.dev/gcnv-ai-dev/genai-toolkit/postgres:v0.2
+        image: pgvector/pgvector:pg16
         container_name: postgres
+        attach: false
         environment:
             POSTGRES_DB: genai-toolkit-db
             POSTGRES_USER: admin
             POSTGRES_PASSWORD: admin
+        healthcheck:
+            test: ["CMD-SHELL", "pg_isready -d ${POSTGRES_DB:-genai-toolkit-db} -U ${POSTGRES_USER:-admin}"]
+            interval: 2s
+            timeout: 5s
+            retries: 60
+        ports:
+            - '5432:5432'
         volumes:
-            - /databases/postgres:/var/lib/postgresql/data
+            - ./postgres:/var/lib/postgresql/data
+        command: ["postgres", "-c", "idle_session_timeout=360000", "-c", "log_statement=all", "-c", "log_line_prefix=%m | %a | '%i' | SessionCommandCount: %c | "]
+        # "-c", "log_duration=on", "-c", "log_connections=on", "-c", "log_disconnections=on", 
 
     genai-toolkit-api:
         stop_signal: SIGINT
-        image: us-docker.pkg.dev/gcnv-ai-dev/genai-toolkit/genai-toolkit-api:v0.2
+        image: us-docker.pkg.dev/gcnv-ai-dev/genai-toolkit/genai-toolkit-api:v0.3
         container_name: genai-toolkit-api
         privileged: true
         healthcheck:
@@ -33,43 +32,55 @@ services:
             retries: 10
         environment:
             ROOT_DIR: /root_dir
-            CHROMA_HOST: chromadb
+            RAGAS_HOST: http://genai-toolkit-ragas:8002
             POSTGRES_HOST: postgres
             POSTGRES_DB: genai-toolkit-db
             LOG_HTTP_REQUESTS: FALSE
             JWT_ACCESS_TOKEN_EXPIRES: 5
             JWT_AUTH_REQUIRED: TRUE
             JWT_SECRET_KEY: JWT_SECRET_KEY_PLACEHOLDER
-            GOOGLE_REGION: GOOGLE_REGION_PLACEHOLDER
-            GOOGLE_PROJECT_ID: GOOGLE_PROJECT_ID_PLACEHOLDER
-            GOOGLE_API_KEY: GOOGLE_API_KEY_PLACEHOLDER
-            GOOGLE_AI_ENDPOINT: GOOGLE_AI_ENDPOINT_PLACEHOLDER
-            OPENAI_API_KEY: OPENAI_API_KEY_PLACEHOLDER
-            OPENAI_ENDPOINT: OPENAI_ENDPOINT_PLACEHOLDER
-            GOOGLE_APPLICATION_CREDENTIALS: /root/.config/gcloud/service_account.json
         volumes:
-            - /root/credentials.json:/root/.config/gcloud/service_account.json
             - /volumes/anf:/root_dir/anf
             - /volumes/ontap:/root_dir/ontap
             - /cache/api:/app/.cache
         depends_on:
-            - chromadb
+            - postgres
+
+    genai-toolkit-ragas:
+        stop_signal: SIGINT
+        build:
+            context: ./api
+            dockerfile: ragas.Dockerfile
+        image: us-docker.pkg.dev/gcnv-ai-dev/genai-toolkit/genai-toolkit-ragas:v0.3
+        container_name: genai-toolkit-ragas
+        env_file:
+            - ./api/.env
+        environment:
+            ROOT_DIR: /root_dir
+            POSTGRES_HOST: postgres
+            JWT_AUTH_REQUIRED: FALSE
+            RAGAS_DO_NOT_TRACK: True
+        volumes:
+            - ./api/fake-volumes:/root_dir
+            - ./api/.cache:/app/.cache
+        depends_on:
             - postgres
 
     genai-toolkit-ui:
-        image: us-docker.pkg.dev/gcnv-ai-dev/genai-toolkit/genai-toolkit-ui:v0.2
+        image: us-docker.pkg.dev/gcnv-ai-dev/genai-toolkit/genai-toolkit-ui:v0.3
         container_name: genai-toolkit-ui
         depends_on:
             genai-toolkit-api:
                 condition: service_healthy
 
     nginx:
-        image: us-docker.pkg.dev/gcnv-ai-dev/genai-toolkit/nginx:v0.2
+        image: us-docker.pkg.dev/gcnv-ai-dev/genai-toolkit/nginx:v0.3
         container_name: nginx
         ports:
             - "80:80"
             - "443:443"
             - "8001:8001"
+            - "8002:8002"
         depends_on:
             - genai-toolkit-api
             - genai-toolkit-ui

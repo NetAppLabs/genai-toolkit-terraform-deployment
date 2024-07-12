@@ -1,19 +1,17 @@
-subscription = ""
-resource_group_name = ""
-location = ""
-vnet = ""
-subnetid = ""
-admin_username = ""
-admin_password = ""
-admin_ssh_key_file_location = ""
+subscription = "081989d8-7ae0-4884-b3c4-ff43a1dcfbe0"
+resource_group_name = "GA_test"
+location = "Sweden Central"
+vnet = "GA-vnet"
+subnetid = "/subscriptions/081989d8-7ae0-4884-b3c4-ff43a1dcfbe0/resourceGroups/GA_test/providers/Microsoft.Network/virtualNetworks/GA-vnet/subnets/default"
+admin_username = "adminuser"
+admin_password = "Admin123"
+admin_ssh_key_file_location = "/Users/hinrikmarhreinsson/.ssh/id_rsa.pub"
 source_ip_range = "*"
-openai_api_key = ""
-openai_endpoint = ""
-google_service_account_file_path = ""
-google_project = ""
-google_region = ""
-google_api_key = ""
-google_ai_endpoint = ""
 
-anf_volumes = []
+anf_volumes = ["10.0.1.4:/movies-volume",
+               "10.0.1.4:/csv-volume",
+               "10.0.1.4:/animal-info-volume",
+               "10.0.1.4:/json-volume",
+               "10.0.1.4:/products-volume"
+]
 ontap_volumes = []
