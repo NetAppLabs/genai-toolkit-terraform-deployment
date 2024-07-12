@@ -7,6 +7,15 @@ This project uses Terraform to deploy NetApp's GenAI Toolkit to Google Cloud Pla
 - Terraform installed
 - Google Cloud SDK (gcloud) installed and authenticated
 
+## Prerequisites on Google Cloud
+
+- Create a Google Cloud NetApp Volumes volume and add some files to it if you haven't got any volumes to use already and write down the volume's/volumes' "URL" (IP and volume name/s).
+- Enable VertexAI services and APIs so that you have some LLMs to talk to.
+- We support all Gemini models as well as Claude3 models from the VertexAI model garden (may need to enable each individually for Claude).
+- At minimum, you need one chat model, one embedding model, and one image model, e.g., "gemini-1.5-flash-001", "text-embedding-004", and "imagegeneration".
+- Once you have enabled VertexAI, you will need to export a service account JSON file to use with the Terraform deployment if you want to set a global access key for all users of your instance of GenAI Toolkit. Alternatively, each user can create their own key after login.
+- Gather information about your networking, region, etc. Needed for the Terraform variables file and then go deploy!
+
 ## Variables
 
 The following variables are used in this Terraform deployment:
@@ -70,15 +79,6 @@ The following variables are used in this Terraform deployment:
    ```
    Confirm the deployment by typing `yes` when prompted
 
-## Prerequisites on Google Cloud
-
-- Create a Google Cloud NetApp Volumes volume and add some files to it if you haven't got any volumes to use already and write down the volume's/volumes' "URL" (IP and volume name/s).
-- Enable VertexAI services and APIs so that you have some LLMs to talk to.
-- We support all Gemini models as well as Claude3 models from the VertexAI model garden (may need to enable each individually for Claude).
-- At minimum, you need one chat model, one embedding model, and one image model, e.g., "gemini-1.5-flash-001", "text-embedding-004", and "imagegeneration".
-- Once you have enabled VertexAI, you will need to export a service account JSON file to use with the Terraform deployment if you want to set a global access key for all users of your instance of GenAI Toolkit. Alternatively, each user can create their own key after login.
-- Gather information about your networking, region, etc. Needed for the Terraform variables file and then go deploy!
-
 ## Starting Tasks after Terraform Deployment on Google Cloud
 
 1. Open GenAI Toolkit by navigating your browser to the IP address that the Terraform deployment reported back to you.
@@ -93,9 +93,3 @@ The following variables are used in this Terraform deployment:
    - If all 3 of your models are correctly configured, the RAG configuration should show a green "CONFIGURED" under Status. If it doesn't, go back to Models and fix the model that has an "Error" status. You can hover over the status to see the error details.
    - Now that you have at least one working RAG configuration, you can either click the "NetApp" logo at the top left to go back to the Volume and RAG configuration selector and choose your active configuration (this will start the indexing) or you can start the indexing from here in the action menu for the RAG configuration by choosing "Re-index".
 6. Go explore! Head back to the front page by clicking the "NetApp" logo at the top left. Indexing can take a while depending on how many files you have and how big they are, but you can start searching/exploring and chatting with your files even if the indexing is not done. The default RAG algorithm does a lot of post-processing after the basic embedding is done. FYI, if you get an "N/A" for a file summary, that just means that it hasn't been indexed yet. The summary is cached in your browser, but you can always refresh/regenerate it by clicking the refresh button in the files table.
-
-
-
-
-
-
