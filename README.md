@@ -29,3 +29,17 @@ A self-managed cloud native solution with an easy to use UI and API to get start
 ![Image Generation](images/image-generation.png)
 ![API](images/api.png)
 
+## Changelog
+v0.3:
+- Azure Support with Azure NetApp Files
+- PGVector is now the default vector database (Can change for Instaclustr or Azure Flex Server)
+- RAG evaluations
+- SmartPrompts
+- Azure OpenAI and OpenAI models
+
+v0.2:
+- GCP Support with Google Cloud NetApp Volumes
+- Prompt API
+- Chat UI
+- Search/Explore
+- Gemini and Claude3 models from VertexAI
