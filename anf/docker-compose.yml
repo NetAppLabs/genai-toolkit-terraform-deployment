@@ -5,65 +5,64 @@ services:
         image: pgvector/pgvector:pg16
         container_name: postgres
         environment:
-            POSTGRES_DB: genai-toolkit-db
-            POSTGRES_USER: admin
-            POSTGRES_PASSWORD: admin
+            POSTGRES_DB: ${POSTGRES_DB:-genai-toolkit-db}
+            POSTGRES_USER: ${POSTGRES_USER:-admin}
+            POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-admin}
         healthcheck:
             test: ["CMD-SHELL", "pg_isready -d ${POSTGRES_DB:-genai-toolkit-db} -U ${POSTGRES_USER:-admin}"]
             interval: 2s
             timeout: 5s
             retries: 60
-        ports:
-            - '5432:5432'
         volumes:
             - ./postgres:/var/lib/postgresql/data
         command: ["postgres", "-c", "idle_session_timeout=360000", "-c", "log_statement=all", "-c", "log_line_prefix=%m | %a | '%i' | SessionCommandCount: %c | "]
-        # "-c", "log_duration=on", "-c", "log_connections=on", "-c", "log_disconnections=on",
 
     genai-toolkit-api:
         stop_signal: SIGINT
         image: us-docker.pkg.dev/gcnv-ai-dev/genai-toolkit/genai-toolkit-api:v0.3
         container_name: genai-toolkit-api
-        privileged: True
         healthcheck:
-            test: ["CMD", "curl", "-f", "http://localhost:8001/health/"]
-            interval: 10s
-            timeout: 10s
+            test: ["CMD-SHELL", "curl -v http://localhost:8001/health || exit 1"]
+            interval: 5s
+            timeout: 2s
             retries: 10
         environment:
             ROOT_DIR: /root_dir
             RAGAS_HOST: http://genai-toolkit-ragas:8002
             ConnectionStrings__DefaultConnection: Host=postgres;Port=5432;Database=genai-toolkit-db;Username=admin;Password=admin
-            LOG_HTTP_REQUESTS: "false"
+            LOG_HTTP_REQUESTS: False
             JWT_ACCESS_TOKEN_EXPIRES: 5
-            JWT_AUTH_REQUIRED: "true"
+            JWT_AUTH_REQUIRED: True
             JWT_SECRET_KEY: 2kITFGsso9V1C4HjmwioxYkWX7ACWYibUepI1NDy9xXpxOLqzkxOVNPjAlPUAxPJQgXyCFs4fMYXGCb2JFcPclYh1bkVsDlX3P7E9EuofBmPq1Z5CctWwBjBe8jWwBme
-        volumes:
-            - /cache/api:/app/.cache
-        ports:
-            - "8080:8080"
         depends_on:
-            - postgres
+            postgres:
+                condition: service_healthy
+            genai-toolkit-ragas:
+                condition: service_healthy
+        volumes:
+            - /volumes:/root_dir
 
     genai-toolkit-ragas:
         stop_signal: SIGINT
-        build:
-            context: ./api
-            dockerfile: ragas.Dockerfile
         image: us-docker.pkg.dev/gcnv-ai-dev/genai-toolkit/genai-toolkit-ragas:v0.3
         container_name: genai-toolkit-ragas
+        healthcheck:
+            test: ['CMD', 'curl', '-f', 'http://localhost:8002/health/']
+            interval: 5s
+            timeout: 2s
+            retries: 10
         environment:
             ROOT_DIR: /root_dir
             POSTGRES_HOST: postgres
-            JWT_AUTH_REQUIRED: "false"
-            RAGAS_DO_NOT_TRACK: "false"
+            JWT_AUTH_REQUIRED: False
+            RAGAS_DO_NOT_TRACK: True
+            PYTHONUNBUFFERED: 1
         volumes:
-            - /volumes/anf:/root_dir/anf
-            - /volumes/ontap:/root_dir/ontap
-            - ./api/fake-volumes:/root_dir
+            - /volumes/:/root_dir
             - ./api/.cache:/app/.cache
         depends_on:
-            - postgres
+            postgres:
+                condition: service_healthy
 
     genai-toolkit-ui:
         image: us-docker.pkg.dev/gcnv-ai-dev/genai-toolkit/genai-toolkit-ui:v0.3
@@ -83,4 +82,4 @@ services:
         depends_on:
             - genai-toolkit-api
             - genai-toolkit-ui
-            
+            - genai-toolkit-ragas
