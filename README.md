@@ -11,5 +11,22 @@ Once the GenAI toolkit is up and running, you will need to add your API key to y
 
 If you encounter any issues with getting the GenAI toolkit up and running or configuring the AI models, please send an email to hinrik@netapp.com.
 
+# What is NetApp's GenAI Toolkit?
 
+A self-managed cloud native solution with an easy to use UI and API to get started with GenAI, RAG workflows, Chatbots and AI assistants building with unstructured data on Azure NetApp Files or Google Cloud NetApp Volumes. Use it standalone (it has a great UI) or as a component in custom workflows via its API.
+
+## Provides:
+- Enterprise level Document Search through LLM vector embeddings (auto embeds with built in PGVector DB)
+- Chatbot (RAG) UI/API
+- RAG model evaluations
+- Exportable Smart Prompts/Chatbot endpoints
+- (Assistants/Agents TBD)
+
+## Screenshots (on Azure):
+![Services](images/services.png)
+![Search](images/search.png)
+![Chat With Your Data](images/chatwithyourdata.png)
+![Save Smart Prompt](images/savesmartprompt.png)
+![Image Generation](images/image-generation.png)
+![API](images/api.png)
 
