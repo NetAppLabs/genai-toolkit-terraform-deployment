@@ -25,7 +25,6 @@ A self-managed cloud native solution with an easy to use UI and API to get start
 ## Screenshots (on Azure):
 ![Services](images/services.png)
 ![Search](images/search.png)
-![Chat With Your Data](images/chatwithyourdata.png)
 ![Save Smart Prompt](images/savesmartprompt.png)
 ![Image Generation](images/image-generation.png)
 ![API](images/api.png)
