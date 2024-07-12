@@ -90,13 +90,7 @@ resource "azurerm_linux_virtual_machine" "genai-toolkit_vm" {
         permissions: '0755'
         content: |
           #!/bin/bash
-          sed -i "s/GOOGLE_REGION_PLACEHOLDER/${var.region}/g" /root/docker-compose.yml
-          sed -i "s/GOOGLE_PROJECT_ID_PLACEHOLDER/${var.project}/g" /root/docker-compose.yml
-          sed -i "s/GOOGLE_API_KEY_PLACEHOLDER/${var.google_api_key}/g" /root/docker-compose.yml
-          sed -i "s/GOOGLE_AI_ENDPOINT_PLACEHOLDER/${var.google_ai_endpoint}/g" /root/docker-compose.yml
           sed -i "s/JWT_SECRET_KEY_PLACEHOLDER/${random_password.jwt_security_token.result}/g" /root/docker-compose.yml
-          sed -i "s/OPENAI_API_KEY_PLACEHOLDER/${var.openai_api_key}/g" /root/docker-compose.yml
-          sed -i "s/OPENAI_ENDPOINT_PLACEHOLDER/${var.openai_endpoint}/g" /root/docker-compose.yml
           export ANF_VOLUMES="${join(",", var.anf_volumes)}"
           export ONTAP_VOLUMES="${join(",", var.ontap_volumes)}"
       - path: /root/bootstrap_script.sh
@@ -109,8 +103,6 @@ resource "azurerm_linux_virtual_machine" "genai-toolkit_vm" {
         content: ${base64encode(file("${path.module}/docker-compose.yml"))}
       - path: /root/credentials.json
         permissions: '0644'
-        content: |
-          ${indent(8, file(var.google_service_account_file_path))}
     runcmd:
       - /root/bootstrap_script.sh
   EOF
