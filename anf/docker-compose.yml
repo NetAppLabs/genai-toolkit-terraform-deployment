@@ -34,11 +34,11 @@ services:
             JWT_ACCESS_TOKEN_EXPIRES: 5
             JWT_AUTH_REQUIRED: True
             JWT_SECRET_KEY: JWT_SECRET_KEY_PLACEHOLDER        
-            depends_on:
-                postgres:
-                    condition: service_healthy
-                genai-toolkit-ragas:
-                    condition: service_healthy
+        depends_on:
+            postgres:
+                condition: service_healthy
+            genai-toolkit-ragas:
+                condition: service_healthy
         volumes:
             - /volumes:/root_dir
 
