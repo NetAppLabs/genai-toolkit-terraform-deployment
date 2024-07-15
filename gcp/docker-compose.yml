@@ -1,75 +1,85 @@
-name: genai-toolkit
-services:
-    chromadb:
-        image: us-docker.pkg.dev/gcnv-ai-dev/genai-toolkit/chromadb:v0.2
-        container_name: chromadb
-        volumes:
-            - /databases/chromadb:/chroma/chroma
-        healthcheck:
-            test: [ "CMD", "curl", "-f", "http://localhost:8000/api/v1/heartbeat" ]
-            interval: 30s
-            timeout: 10s
-            retries: 3
+version: '3.8'
 
+services:
     postgres:
-        image: us-docker.pkg.dev/gcnv-ai-dev/genai-toolkit/postgres:v0.2
+        image: pgvector/pgvector:pg16
         container_name: postgres
         environment:
-            POSTGRES_DB: genai-toolkit-db
-            POSTGRES_USER: admin
-            POSTGRES_PASSWORD: admin
+            POSTGRES_DB: ${POSTGRES_DB:-genai-toolkit-db}
+            POSTGRES_USER: ${POSTGRES_USER:-admin}
+            POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-admin}
+        healthcheck:
+            test: ["CMD-SHELL", "pg_isready -d ${POSTGRES_DB:-genai-toolkit-db} -U ${POSTGRES_USER:-admin}"]
+            interval: 2s
+            timeout: 5s
+            retries: 60
         volumes:
-            - /databases/postgres:/var/lib/postgresql/data
+            - ./postgres:/var/lib/postgresql/data
+        command: ["postgres", "-c", "idle_session_timeout=360000", "-c", "log_statement=all", "-c", "log_line_prefix=%m | %a | '%i' | SessionCommandCount: %c | "]
 
     genai-toolkit-api:
         stop_signal: SIGINT
-        image: us-docker.pkg.dev/gcnv-ai-dev/genai-toolkit/genai-toolkit-api:v0.2
+        image: us-docker.pkg.dev/gcnv-ai-dev/genai-toolkit/genai-toolkit-api:v0.3
         container_name: genai-toolkit-api
-        privileged: true
         healthcheck:
-            test: ["CMD", "curl", "-f", "http://localhost:8001/health/"]
-            interval: 10s
-            timeout: 10s
+            test: ["CMD-SHELL", "curl -v http://localhost:8001/health || exit 1"]
+            interval: 5s
+            timeout: 2s
             retries: 10
         environment:
             ROOT_DIR: /root_dir
-            CHROMA_HOST: chromadb
-            POSTGRES_HOST: postgres
-            POSTGRES_DB: genai-toolkit-db
-            LOG_HTTP_REQUESTS: FALSE
+            RAGAS_HOST: http://genai-toolkit-ragas:8002
+            ConnectionStrings__DefaultConnection: Host=postgres;Port=5432;Database=genai-toolkit-db;Username=admin;Password=admin
+            LOG_HTTP_REQUESTS: False
             JWT_ACCESS_TOKEN_EXPIRES: 5
-            JWT_AUTH_REQUIRED: TRUE
-            JWT_SECRET_KEY: JWT_SECRET_KEY_PLACEHOLDER
-            GOOGLE_REGION: GOOGLE_REGION_PLACEHOLDER
-            GOOGLE_PROJECT_ID: GOOGLE_PROJECT_ID_PLACEHOLDER
-            GOOGLE_API_KEY: GOOGLE_API_KEY_PLACEHOLDER
-            GOOGLE_AI_ENDPOINT: GOOGLE_AI_ENDPOINT_PLACEHOLDER
-            OPENAI_API_KEY: OPENAI_API_KEY_PLACEHOLDER
-            OPENAI_ENDPOINT: OPENAI_ENDPOINT_PLACEHOLDER
-            GOOGLE_APPLICATION_CREDENTIALS: /root/.config/gcloud/service_account.json
-        volumes:
-            - /root/credentials.json:/root/.config/gcloud/service_account.json
-            - /volumes/gcnv:/root_dir/gcnv
-            - /volumes/ontap:/root_dir/ontap
-            - /cache/api:/app/.cache
+            JWT_AUTH_REQUIRED: True
+            JWT_SECRET_KEY: JWT_SECRET_KEY_PLACEHOLDER        
         depends_on:
-            - chromadb
-            - postgres
+            postgres:
+                condition: service_healthy
+            genai-toolkit-ragas:
+                condition: service_healthy
+        volumes:
+            - /volumes:/root_dir
+
+    genai-toolkit-ragas:
+        stop_signal: SIGINT
+        image: us-docker.pkg.dev/gcnv-ai-dev/genai-toolkit/genai-toolkit-ragas:v0.3
+        container_name: genai-toolkit-ragas
+        healthcheck:
+            test: ['CMD', 'curl', '-f', 'http://localhost:8002/health/']
+            interval: 5s
+            timeout: 2s
+            retries: 10
+        environment:
+            ROOT_DIR: /root_dir
+            POSTGRES_HOST: postgres
+            JWT_AUTH_REQUIRED: False
+            RAGAS_DO_NOT_TRACK: True
+            PYTHONUNBUFFERED: 1
+        volumes:
+            - /volumes/:/root_dir
+            - ./api/.cache:/app/.cache
+        depends_on:
+            postgres:
+                condition: service_healthy
 
     genai-toolkit-ui:
-        image: us-docker.pkg.dev/gcnv-ai-dev/genai-toolkit/genai-toolkit-ui:v0.2
+        image: us-docker.pkg.dev/gcnv-ai-dev/genai-toolkit/genai-toolkit-ui:v0.3
         container_name: genai-toolkit-ui
         depends_on:
             genai-toolkit-api:
                 condition: service_healthy
 
     nginx:
-        image: us-docker.pkg.dev/gcnv-ai-dev/genai-toolkit/nginx:v0.2
+        image: us-docker.pkg.dev/gcnv-ai-dev/genai-toolkit/nginx:v0.3
         container_name: nginx
         ports:
             - "80:80"
             - "443:443"
             - "8001:8001"
+            - "8002:8002"
         depends_on:
             - genai-toolkit-api
             - genai-toolkit-ui
+            - genai-toolkit-ragas
