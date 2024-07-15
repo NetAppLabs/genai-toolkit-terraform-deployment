@@ -10,7 +10,6 @@ curl -L "https://github.com/docker/compose/releases/download/1.27.4/docker-compo
 chmod +x /usr/local/bin/docker-compose
 
 mkdir -p /volumes/
-mkdir -p /databases/chromadb
 mkdir -p /databases/postgres
 mkdir -p /cache/api
 
