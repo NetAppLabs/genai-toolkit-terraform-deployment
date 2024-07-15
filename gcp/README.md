@@ -14,6 +14,7 @@ This project uses Terraform to deploy NetApp's GenAI Toolkit to Google Cloud Pla
 - We support all Gemini models as well as Claude3 models from the VertexAI model garden (may need to enable each individually for Claude).
 - At minimum, you need one chat model, one embedding model, and one image model, e.g., "gemini-1.5-flash-001", "text-embedding-004", and "imagegeneration".
 - Once you have enabled VertexAI, you will need to export a service account JSON file to use with the Terraform deployment if you want to set a global access key for all users of your instance of GenAI Toolkit. Alternatively, each user can create their own key after login.
+- You need compute access rights on the service acocount used to create the VM.
 - Gather information about your networking, region, etc. Needed for the Terraform variables file and then go deploy!
 
 ## Variables
