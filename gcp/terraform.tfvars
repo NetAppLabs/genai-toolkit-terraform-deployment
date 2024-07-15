@@ -13,6 +13,5 @@ source_ranges = [""]
 //   "5.6.7.8:/volume2"
 // ]
 
-gcnv_volumes = [
-]
+gcnv_volumes = []
 ontap_volumes = []
