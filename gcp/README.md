@@ -29,8 +29,6 @@ The following variables are used in this Terraform deployment:
 - `firewall_tags`: List of tags to apply to the firewall rules.
 - `source_ranges`: A list of source ranges.
 - `service_account_json_file_path`: Path to service account JSON for gcloud.
-- `openai_api_key`: API key for OpenAI.
-- `openai_endpoint`: Endpoint for OpenAI.
 - `gcnv_volumes`: List of GCNV NFS volumes to mount.
 - `ontap_volumes`: List of ONTAP NFS volumes to mount.
 
@@ -59,8 +57,6 @@ The following variables are used in this Terraform deployment:
    firewall_tags = ["http-server", "https-server"]
    source_ranges = ["<source_range1>", "<source_range2>"]
    service_account_json_file_path = "<service_account_json_file_path>"
-   openai_api_key = "<openai_api_key>"
-   openai_endpoint = "<openai_endpoint>"
    gcnv_volumes = ["<1.2.3.4:/gcnv/volume1>", "<1.2.3.4:/gcnv/volume2>"]
    ontap_volumes = ["<1.2.3.4:/ontap/volume1>", "<1.2.3.4:/ontap/volume2>"]
    ```
