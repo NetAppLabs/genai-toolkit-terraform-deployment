@@ -4,8 +4,8 @@ zone = ""
 network = ""
 subnetwork = ""
 firewall_tags = [""]
-service_account_json_file_path = ""
 source_ranges = [""]
+service_account_json_file_path = ""
 
 // List of volumes you want to mount the files from. Example variable:
 // gcnv_volumes = [
