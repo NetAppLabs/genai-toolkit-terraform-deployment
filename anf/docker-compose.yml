@@ -1,5 +1,4 @@
-version: '3.8'
-
+name: genai-toolkit
 services:
     postgres:
         image: pgvector/pgvector:pg16
@@ -19,7 +18,7 @@ services:
 
     genai-toolkit-api:
         stop_signal: SIGINT
-        image: us-docker.pkg.dev/gcnv-ai-dev/genai-toolkit/genai-toolkit-api:v0.3
+        image: us-docker.pkg.dev/gcnv-ai-dev/genai-toolkit/genai-toolkit-api:v0.3.1
         container_name: genai-toolkit-api
         healthcheck:
             test: ["CMD-SHELL", "curl -v http://localhost:8001/health || exit 1"]
@@ -44,7 +43,7 @@ services:
 
     genai-toolkit-ragas:
         stop_signal: SIGINT
-        image: us-docker.pkg.dev/gcnv-ai-dev/genai-toolkit/genai-toolkit-ragas:v0.3
+        image: us-docker.pkg.dev/gcnv-ai-dev/genai-toolkit/genai-toolkit-ragas:v0.3.1
         container_name: genai-toolkit-ragas
         healthcheck:
             test: ['CMD', 'curl', '-f', 'http://localhost:8002/health/']
@@ -65,14 +64,14 @@ services:
                 condition: service_healthy
 
     genai-toolkit-ui:
-        image: us-docker.pkg.dev/gcnv-ai-dev/genai-toolkit/genai-toolkit-ui:v0.3
+        image: us-docker.pkg.dev/gcnv-ai-dev/genai-toolkit/genai-toolkit-ui:v0.3.1
         container_name: genai-toolkit-ui
         depends_on:
             genai-toolkit-api:
                 condition: service_healthy
 
     nginx:
-        image: us-docker.pkg.dev/gcnv-ai-dev/genai-toolkit/nginx:v0.3
+        image: us-docker.pkg.dev/gcnv-ai-dev/genai-toolkit/nginx:v0.3.1
         container_name: nginx
         ports:
             - "80:80"
