@@ -14,7 +14,7 @@ This project uses Terraform to deploy NetApp's GenAI Toolkit to Google Cloud Pla
 - We support all Gemini models as well as Claude3 models from the VertexAI model garden (may need to enable each individually for Claude).
 - At minimum, you need one chat model, one embedding model, and one image model, e.g., "gemini-1.5-flash-001", "text-embedding-004", and "imagegeneration".
 - Once you have enabled VertexAI, you will need to export a service account JSON file to use with the Terraform deployment if you want to set a global access key for all users of your instance of GenAI Toolkit. Alternatively, each user can create their own key after login.
-- You need compute access rights on the service acocount used to create the VM.
+- You need compute access rights on the service account used to create the VM.
 - Gather information about your networking, region, etc. Needed for the Terraform variables file and then go deploy!
 
 ## Variables
@@ -84,6 +84,7 @@ The following variables are used in this Terraform deployment:
 2. Register a user account and login (In Preview this is only an email/password pair).
 3. Next, you need to configure your global VertexAI service account (if you didn't in the Terraform deployment) or a private VertexAI key.
    - If you haven't fetched a service account JSON file, then in a separate browser window go to your "APIs & Services Credentials" page and create a Service Account and export the JSON file (you will need the contents of the file).
+   - The VertexAI service account needs to have the "Vertex AI Service Agent" role.
    - Then in the GenAI Toolkit browser window, click the top right corner menu of GenAI Toolkit (where you see your email) and go to "API Keys" and select edit on the key "default_vertex_key". This is where you paste in your Service account JSON file's contents and save. Make sure you select "json" as the key type.
 4. Onto the model configuration:
    - Next, click the top right menu again and select "Models". You now need to customize 3 models: a chat model, an embedding model, and an image model (assuming you have deployed Dall-e). If you already added a global "default_vertex_key" then select that on each model and save.
