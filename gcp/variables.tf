@@ -23,10 +23,9 @@ variable "subnetwork" {
   type        = string
 }
 
-variable "firewall_tags" {
-  description = "List of tags to apply to the firewall rules"
+variable "source_ip_ranges" {
+  description = "A list of CIDRs that can access to the toolkit"
   type        = list(string)
-  default     = ["http-server", "https-server"]
 }
 
 variable "gcnv_volumes" {
@@ -37,14 +36,4 @@ variable "gcnv_volumes" {
 variable "ontap_volumes" {
   description = "List of ONTAP NFS servers to mount"
   type        = list(string)
-}
-
-variable "source_ranges" {
-  description = "A list of source ranges"
-  type        = list(string)
-}
-
-variable "service_account_json_file_path" {
-  description = "Path to service account JSON for gcloud"
-  type = string
 }
