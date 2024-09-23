@@ -3,6 +3,23 @@ resource "random_password" "jwt_security_token" {
   special          = false
 }
 
+resource "random_password" "postgres_password" {
+  length           = 16
+  special          = false
+}
+
+provider "tls" {}
+
+resource "tls_private_key" "private_rsa" {
+  algorithm = "RSA"
+  rsa_bits = 4096
+}
+
+locals {
+  private_key_pem_base64 = base64encode(tls_private_key.private_rsa.private_key_pem)
+  public_key_pem_base64  = base64encode(tls_private_key.private_rsa.public_key_pem)
+}
+
 # Declare Provider Azure
 provider "azurerm" {
   features {}
@@ -91,6 +108,7 @@ resource "azurerm_linux_virtual_machine" "genai-toolkit_vm" {
         content: |
           #!/bin/bash
           sed -i "s/JWT_SECRET_KEY_PLACEHOLDER/${random_password.jwt_security_token.result}/g" /root/docker-compose.yml
+          sed -i "s/POSTGRES_PASSWORD_PLACEHOLDER/${random_password.postgres_password.result}/g" /root/docker-compose.yml
           export ANF_VOLUMES="${join(",", var.anf_volumes)}"
           export ONTAP_VOLUMES="${join(",", var.ontap_volumes)}"
       - path: /root/bootstrap_script.sh
@@ -101,8 +119,14 @@ resource "azurerm_linux_virtual_machine" "genai-toolkit_vm" {
         permissions: '0644'
         encoding: b64
         content: ${base64encode(file("${path.module}/docker-compose.yml"))}
-      - path: /root/credentials.json
+      - path: /root/.auth-keys/private/rs256.rsa
+        permissions: '0600'
+        encoding: b64
+        content: ${local.private_key_pem_base64}
+      - path: /root/.auth-keys/public/public_key.rsa
         permissions: '0644'
+        encoding: b64
+        content: ${local.public_key_pem_base64}
     runcmd:
       - /root/bootstrap_script.sh
   EOF

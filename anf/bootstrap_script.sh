@@ -14,6 +14,8 @@ chmod +x /usr/local/bin/docker-compose
 mkdir -p /volumes/
 mkdir -p /databases/postgres
 mkdir -p /cache/api
+mkdir -p /root/.auth-keys/private
+mkdir -p /root/.auth-keys/public
 
 IFS=',' read -ra nfs_servers <<< "$ANF_VOLUMES"
 for nfs_server in "${nfs_servers[@]}"; do
@@ -31,4 +33,5 @@ for nfs_server in "${nfs_servers[@]}"; do
 done
 
 cd /root/
+
 docker compose up --detach --remove-orphans
