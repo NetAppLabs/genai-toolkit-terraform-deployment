@@ -30,6 +30,13 @@ A self-managed cloud native solution with an easy to use UI and API to get start
 ![API](images/api.png)
 
 ## Changelog
+v0.4:
+- RAG config evaluations
+- Cross container authentication
+- Image model config optional in RAG config
+- Enable talking to a model without context (passthrough)
+- UI improvements and hardening
+
 v0.3:
 - Azure Support with Azure NetApp Files
 - PGVector is now the default vector database (Can change for Instaclustr or Azure Flex Server)
